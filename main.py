@@ -4,6 +4,7 @@ from tkinter import messagebox
 import random
 import string
 import pyperclip
+import os
 
 
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
@@ -27,7 +28,6 @@ def generate_password():
 
 
 # ---------------------------- SAVE PASSWORD ------------------------------- #
-
 
 def save():
     website = website_entry.get()
@@ -62,70 +62,85 @@ def save():
 
 
 def find_password():
-    is_found = 0
+    website = website_entry.get()
     try:
         with open("data.json") as data_file:
             data = json.load(data_file)
     except FileNotFoundError:
         messagebox.showinfo(title="No File Found", message="No Data File Found")
-        data = {}
     except json.JSONDecodeError:
         messagebox.showinfo(title="No Data Found", message="data.json does not contain data")
-        data = {}
     else:
-        for key, value in data.items():
-            if key == website_entry.get():
-                messagebox.showinfo(title=website_entry.get(),
-                                    message=f"Username: {key}\nPassword: {value['password']}")
-                is_found = 1
-                website_entry.delete(0, END)
-                password_entry.delete(0, END)
-        if is_found == 0:
-            messagebox.showinfo(title="Error", message=f"No Details For {website_entry.get()} Found")
-            website_entry.delete(0, END)
-            password_entry.delete(0, END)
+        if website in data:
+            email = data[website]["email"]
+            password = data[website]["password"]
+            messagebox.showinfo(title=website, message=f"Email: {email}\nPassword: {password}")
+        else:
+            messagebox.showinfo(title="Error", message=f"No Details For {website} Found")
 
 
 # ---------------------------- UI SETUP ------------------------------- #
 
 window = Tk()
+window.geometry("500x600")
 window.title("Password Manager")
-window.config(padx=50, pady=50)
+window.config(padx=20, pady=20)
 
-canvas = Canvas(width=200, height=200)
+# Logo
+canvas = Canvas(window, width=200, height=200)
+logo_path = "D:/Python/Secure Tool Expo/password-manager/logo.jpg"
+if os.path.exists(logo_path):
+    main_image = PhotoImage(file=logo_path)
+    canvas.create_image(100, 100, image=main_image)
+else:
+    messagebox.showerror(title="Error", message="logo.jpg file not found")
+canvas.grid(column=1, row=0, pady=20)
 
-main_image = PhotoImage(file="logo.png")
-canvas.create_image(100, 100, image=main_image)
-canvas.grid(column=1, row=0)
+# Website Frame
+website_frame = Frame(window)
+website_frame.grid(column=1, row=1, pady=5)
 
-website_label = Label(text="Website: ")
-website_label.grid(column=0, row=1)
+website_label = Label(website_frame, text="Website:")
+website_label.grid(sticky="E", padx=5, pady=5)
 
-website_entry = Entry(width=35)
-website_entry.grid(column=1, row=1)
+website_entry = Entry(website_frame, width=35)
+website_entry.grid(sticky="EW", padx=5, pady=5)
 website_entry.focus()
 
-website_search_btn = Button(text="Search", command=find_password)
-website_search_btn.grid(column=2, row=1, sticky="EW")
+# Email Frame
+email_frame = Frame(window)
+email_frame.grid(column=1, row=2, pady=5)
 
-email_label = Label(text="Email/Username: ")
-email_label.grid(column=0, row=2)
+email_label = Label(email_frame, text="Email/Username:")
+email_label.grid(sticky="E", padx=5, pady=5)
 
-email_entry = Entry(width=35)
-email_entry.grid(column=1, row=2, columnspan=2, sticky="EW")
-email_entry.insert(0, "yourmail@gmail.com")  # END represents the last character of the entry ie.., the cursor will
-# be at the end of the entry for you to edit. Or you can use 0 which represents the beginning of the entry
+email_entry = Entry(email_frame, width=35)
+email_entry.grid(sticky="EW", padx=5, pady=5)
+email_entry.insert(0, "yourmail@gmail.com")
 
-password_label = Label(text="Password: ")
-password_label.grid(column=0, row=3)
+# Password Frame
+passframe = Frame(window)
+passframe.grid(column=1, row=3, pady=5)
 
-password_entry = Entry(width=21, show="*")
-password_entry.grid(column=1, row=3, sticky="EW")
+password_label = Label(passframe, text="Password:")
+password_label.grid(sticky="E", padx=5, pady=5)
 
-generate_password_btn = Button(text="Generate Password", command=generate_password)
-generate_password_btn.grid(column=2, row=3, sticky="EW")
+password_entry = Entry(passframe, width=21, show="*")
+password_entry.grid(sticky="EW", padx=5, pady=5)
 
-add_btn = Button(text="Add", width=36, command=save)
-add_btn.grid(column=1, row=4, columnspan=2, sticky="EW")
+# Buttons Frame
+
+buttonframe = Frame(window)
+buttonframe.grid(column=1, row=4, pady=5)
+
+addbutton = Button(buttonframe, text="Add", width=36, command=save)
+addbutton.grid(columnspan=2, sticky="EW", padx=5, pady=20)
+
+gpbutton = Button(buttonframe, text="Generate Password", command=generate_password)
+gpbutton.grid(columnspan=2,sticky="EW", padx=5, pady=5)
+
+website_search_btn = Button(buttonframe, text="Search", command=find_password)
+website_search_btn.grid(columnspan = 2,sticky="EW", padx=5, pady=5)
+
 
 window.mainloop()
